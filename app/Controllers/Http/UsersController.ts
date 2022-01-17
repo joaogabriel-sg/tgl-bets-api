@@ -1,23 +1,15 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import User from 'App/Models/User'
+import CreateUserValidator from 'App/Validators/CreateUserValidator'
 
 export default class UsersController {
   public async index({}: HttpContextContract) {}
 
   public async store({ request, response }: HttpContextContract) {
-    const name = request.input('name')
-    const email = request.input('email')
-    const password = request.input('password')
-    const role = request.input('role')
+    const newUser = await request.validate(CreateUserValidator)
+    await User.create(newUser)
 
-    const newUser = { name, email, password, role }
-
-    try {
-      await User.create(newUser)
-      return response.status(201).json({ message: 'Created user.' })
-    } catch (error) {
-      return response.status(422).json({ error: 'Invalid credentials.' })
-    }
+    return response.status(201).json({ message: 'Created user.' })
   }
 
   public async show({}: HttpContextContract) {}

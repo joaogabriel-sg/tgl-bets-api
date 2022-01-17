@@ -1,21 +1,22 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import User from 'App/Models/User'
+import AuthValidator from 'App/Validators/AuthValidator'
 
 export default class AuthController {
   public async login({ auth, request, response }: HttpContextContract) {
-    const email = request.input('email')
-    const password = request.input('password')
+    const userData = await request.validate(AuthValidator)
 
     try {
-      const user = await User.findBy('email', email)
+      const user = await User.findBy('email', userData.email)
 
       if (!user) {
         return response.status(404).json({ error: 'User not found.' })
       }
 
-      const token = await auth
-        .use('api')
-        .attempt(email, password, { expiresIn: '30mins', name: user?.serialize().email })
+      const token = await auth.use('api').attempt(userData.email, userData.password, {
+        expiresIn: '30mins',
+        name: user?.serialize().email,
+      })
 
       const userWithoutPassword = {
         id: user.id,
