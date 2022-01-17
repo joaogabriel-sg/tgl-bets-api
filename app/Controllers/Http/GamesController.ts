@@ -10,10 +10,15 @@ export default class GamesController {
     return { min_cart_value: minCartValue, games }
   }
 
-  public async store({ request }: HttpContextContract) {
+  public async store({ request, response }: HttpContextContract) {
     const data = await request.validate(GameValidator)
-    const newGame = await Game.create(data)
-    return newGame
+
+    try {
+      const newGame = await Game.create(data)
+      return newGame
+    } catch (err) {
+      return response.status(err.status).json({ error: err.message })
+    }
   }
 
   public async show({ params, response }: HttpContextContract) {
@@ -22,8 +27,8 @@ export default class GamesController {
     try {
       const game = await Game.findOrFail(gameId)
       return game
-    } catch {
-      return response.notFound({ error: 'Game not found.' })
+    } catch (err) {
+      return response.status(err.status).json({ error: err.message })
     }
   }
 
