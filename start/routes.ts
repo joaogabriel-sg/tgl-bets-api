@@ -18,5 +18,6 @@
 |
 */
 
-import 'App/Modules/User/routes'
 import 'App/Modules/Auth/routes'
+import 'App/Modules/Game/routes'
+import 'App/Modules/User/routes'
