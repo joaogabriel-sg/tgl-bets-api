@@ -1,8 +1,10 @@
+import Mail from '@ioc:Adonis/Addons/Mail'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Bet from 'App/Models/Bet'
 import Game from 'App/Models/Game'
 import CreateBetValidator from 'App/Validators/CreateBetValidator'
 
+type MailBet = { type: string; numbers: string }
 export default class BetsController {
   public async index({ auth }: HttpContextContract) {
     const { id } = await auth.use('api').authenticate()
@@ -34,13 +36,28 @@ export default class BetsController {
     const user = await auth.use('api').authenticate()
     const data = await request.validate(CreateBetValidator)
 
+    const mailBets: MailBet[] = []
+
     data.bets.forEach(async (bet) => {
-      await Game.findByOrFail('id', bet.id)
+      const game = await Game.findByOrFail('id', bet.id)
       await Bet.create({
         userId: user.id,
         gameId: bet.id,
         numbers: bet.numbers.join(','),
       })
+
+      mailBets.push({
+        type: game.type,
+        numbers: bet.numbers.join(','),
+      })
+    })
+
+    await Mail.send((message) => {
+      message
+        .from('no-reply@tglbets.com')
+        .to(user.email)
+        .subject(`TGL Bets - Your new bets!`)
+        .htmlView('emails/new_bet', { bets: mailBets })
     })
 
     return response.status(204)

@@ -1,4 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Mail from '@ioc:Adonis/Addons/Mail'
 import Bet from 'App/Models/Bet'
 import User from 'App/Models/User'
 import CreateUserValidator from 'App/Validators/CreateUserValidator'
@@ -40,6 +41,14 @@ export default class UsersController {
       created_at: user.createdAt,
       updated_at: user.updatedAt,
     }
+
+    await Mail.send((message) => {
+      message
+        .from('no-reply@tglbets.com')
+        .to(user.email)
+        .subject('TGL Bets - You made a new bet')
+        .htmlView('emails/welcome')
+    })
 
     return { token, user: userWithoutPassword }
   }
