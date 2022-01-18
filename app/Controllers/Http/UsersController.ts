@@ -1,9 +1,28 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Bet from 'App/Models/Bet'
 import User from 'App/Models/User'
 import CreateUserValidator from 'App/Validators/CreateUserValidator'
+import UpdateUserValidator from 'App/Validators/UpdateUserValidator'
 
 export default class UsersController {
-  public async index({}: HttpContextContract) {}
+  public async index({ auth }: HttpContextContract) {
+    const user = await auth.use('api').authenticate()
+
+    const currentMonth = new Date().getMonth() + 1
+    const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1
+
+    const bets = await Bet.query()
+      .where('user_id', user.id)
+      .orderBy('created_at', 'desc')
+      .preload('game')
+
+    const lastMonthBets = bets.filter((bet) => {
+      const betMonth = bet.createdAt.month
+      return betMonth === lastMonth
+    })
+
+    return { user, last_month_bets: lastMonthBets }
+  }
 
   public async store({ auth, request }: HttpContextContract) {
     const newUser = await request.validate(CreateUserValidator)
@@ -25,9 +44,39 @@ export default class UsersController {
     return { token, user: userWithoutPassword }
   }
 
-  public async show({}: HttpContextContract) {}
+  public async update({ auth, request }: HttpContextContract) {
+    const { id } = await auth.use('api').authenticate()
+    const newUserData = await request.validate(UpdateUserValidator)
 
-  public async update({}: HttpContextContract) {}
+    const user = await User.findByOrFail('id', id)
+    user.merge(newUserData)
+    await user.save()
 
-  public async destroy({}: HttpContextContract) {}
+    const token = await auth.use('api').attempt(newUserData.email, newUserData.password, {
+      expiresIn: '30mins',
+      name: user.email,
+    })
+
+    const userWithoutPassword = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      created_at: user.createdAt,
+      updated_at: user.updatedAt,
+    }
+
+    return { token, user: userWithoutPassword }
+  }
+
+  public async destroy({ auth, response }: HttpContextContract) {
+    const user = await auth.use('api').authenticate()
+
+    try {
+      await user.delete()
+      return response.status(204)
+    } catch {
+      return response.status(400).json({ error: 'User not deleted.' })
+    }
+  }
 }
