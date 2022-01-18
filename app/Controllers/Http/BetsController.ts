@@ -6,9 +6,28 @@ import CreateBetValidator from 'App/Validators/CreateBetValidator'
 export default class BetsController {
   public async index({ auth }: HttpContextContract) {
     const { id } = await auth.use('api').authenticate()
-    const bets = await Bet.query().where('user_id', id).orderBy('created_at', 'desc')
+    const bets = await Bet.query()
+      .where('user_id', id)
+      .orderBy('created_at', 'desc')
+      .preload('game')
 
-    return bets
+    const formattedBets = bets.map((bet) => ({
+      id: bet.id,
+      numbers: bet.numbers,
+      created_at: bet.createdAt,
+      updated_at: bet.updatedAt,
+      game: {
+        id: bet.game.id,
+        type: bet.game.type,
+        description: bet.game.description,
+        range: bet.game.range,
+        price: bet.game.price,
+        max_number: bet.game.maxNumber,
+        color: bet.game.color,
+      },
+    }))
+
+    return formattedBets
   }
 
   public async store({ auth, request, response }: HttpContextContract) {
@@ -27,7 +46,7 @@ export default class BetsController {
     return response.status(204)
   }
 
-  public async show({ auth, params }: HttpContextContract) {
+  public async show({ auth, params, response }: HttpContextContract) {
     const { betId } = params
     const { id } = await auth.use('api').authenticate()
 
@@ -35,7 +54,30 @@ export default class BetsController {
       .where('user_id', id)
       .andWhere('id', betId)
       .orderBy('created_at', 'desc')
+      .preload('game')
 
-    return bets[0] || {}
+    const bet = bets[0]
+
+    if (!bet) {
+      return response.status(404).json({ error: 'Bet not found.' })
+    }
+
+    const formattedBet = {
+      id: bet.id,
+      numbers: bet.numbers,
+      created_at: bet.createdAt,
+      updated_at: bet.updatedAt,
+      game: {
+        id: bet.game.id,
+        type: bet.game.type,
+        description: bet.game.description,
+        range: bet.game.range,
+        price: bet.game.price,
+        max_number: bet.game.maxNumber,
+        color: bet.game.color,
+      },
+    }
+
+    return formattedBet
   }
 }
