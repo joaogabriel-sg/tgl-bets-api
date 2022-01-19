@@ -95,7 +95,7 @@ export default class BetsController {
 
     await Mail.send((message) => {
       message
-        .from('no-reply@tglbets.com')
+        .from(Env.get('MAIL_FROM'))
         .to(user.email)
         .subject(`TGL Bets - Your new bets!`)
         .htmlView('emails/new_bet', { bets: mailBets })

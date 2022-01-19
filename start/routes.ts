@@ -23,6 +23,9 @@ import Route from '@ioc:Adonis/Core/Route'
 Route.group(() => {
   Route.post('/login', 'AuthController.login')
 
+  Route.post('/forgot-password', 'PasswordRecoveriesController.forgotPassword')
+  Route.post('/reset-password', 'PasswordRecoveriesController.resetPassword')
+
   Route.group(() => {
     Route.get('/', 'BetsController.index')
     Route.get('/:betId', 'BetsController.show')
