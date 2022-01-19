@@ -1,6 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import crypto from 'crypto'
 import User from 'App/Models/User'
+import Env from '@ioc:Adonis/Core/Env'
 import ForgotPasswordValidator from 'App/Validators/ForgotPasswordValidator'
 import Mail from '@ioc:Adonis/Addons/Mail'
 import PasswordRecoveryToken from 'App/Models/PasswordRecoveryToken'
@@ -30,7 +31,7 @@ export default class PasswordRecoveriesController {
 
       await Mail.send((message) => {
         message
-          .from('no-reply@tglbets.com')
+          .from(Env.get('MAIL_FROM'))
           .to(user.email)
           .subject(`TGL Bets - Recover your password!`)
           .htmlView('emails/forgot_password', { token })
@@ -74,7 +75,7 @@ export default class PasswordRecoveriesController {
 
       await Mail.send((message) => {
         message
-          .from('no-reply@tglbets.com')
+          .from(Env.get('MAIL_FROM'))
           .to(email)
           .subject(`TGL Bets - Successful password recovery!`)
           .htmlView('emails/successful_password_recovery')
