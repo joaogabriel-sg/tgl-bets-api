@@ -21,4 +21,5 @@ export default Env.rules({
   APP_NAME: Env.schema.string(),
   DRIVE_DISK: Env.schema.enum(['local'] as const),
   NODE_ENV: Env.schema.enum(['development', 'production', 'testing'] as const),
+  MIN_CART_VALUE: Env.schema.number(),
 })
