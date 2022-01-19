@@ -39,12 +39,28 @@ export default class BetsController {
     const data = await request.validate(CreateBetValidator)
 
     const mailBets: MailBet[] = []
-    let totalPrice = 0
 
-    data.bets.forEach(async (bet) => {
+    let totalPrice = 0
+    let isNumberLengthValid = true
+    let areNumbersRangeValid = true
+
+    for (const bet of data.bets) {
       const game = await Game.findByOrFail('id', bet.id)
+
+      if (isNumberLengthValid && bet.numbers.length !== game.maxNumber) {
+        isNumberLengthValid = false
+      }
+
+      const numbersRangeValidation = bet.numbers.every(
+        (number) => number > 0 && number <= game.range
+      )
+
+      if (!numbersRangeValidation) {
+        areNumbersRangeValid = false
+      }
+
       totalPrice += game.price
-    })
+    }
 
     if (totalPrice <= Env.get('MIN_CART_VALUE')) {
       return response.status(422).json({
@@ -54,8 +70,17 @@ export default class BetsController {
       })
     }
 
+    if (!isNumberLengthValid) {
+      return response.status(422).json({ error: 'Invalid numbers length in a bet.' })
+    }
+
+    if (!areNumbersRangeValid) {
+      return response.status(422).json({ error: 'Invalid numbers range in a bet.' })
+    }
+
     data.bets.forEach(async (bet) => {
       const game = await Game.findByOrFail('id', bet.id)
+
       await Bet.create({
         userId: user.id,
         gameId: bet.id,
