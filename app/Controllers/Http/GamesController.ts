@@ -1,10 +1,11 @@
+import Env from '@ioc:Adonis/Core/Env'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Game from 'App/Models/Game'
 import GameValidator from 'App/Validators/GameValidator'
 
 export default class GamesController {
   public async index({}: HttpContextContract) {
-    const minCartValue = 30
+    const minCartValue = Env.get('MIN_CART_VALUE')
     const games = await Game.all()
 
     return { min_cart_value: minCartValue, games }

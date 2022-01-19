@@ -1,4 +1,5 @@
 import Mail from '@ioc:Adonis/Addons/Mail'
+import Env from '@ioc:Adonis/Core/Env'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Bet from 'App/Models/Bet'
 import Game from 'App/Models/Game'
@@ -37,6 +38,18 @@ export default class BetsController {
     const data = await request.validate(CreateBetValidator)
 
     const mailBets: MailBet[] = []
+    let totalPrice = 0
+
+    data.bets.forEach(async (bet) => {
+      const game = await Game.findByOrFail('id', bet.id)
+      totalPrice += game.price
+    })
+
+    if (totalPrice <= Env.get('MIN_CART_VALUE')) {
+      return response
+        .status(422)
+        .json({ error: `Total price must be greater than R$ ${Env.get('MIN_CART_VALUE')},00.` })
+    }
 
     data.bets.forEach(async (bet) => {
       const game = await Game.findByOrFail('id', bet.id)
