@@ -23,8 +23,17 @@
     "youch-terminal": "^2.0.0"
   },
   "dependencies": {
+    "@adonisjs/auth": "^8.0.10",
     "@adonisjs/core": "^5.4.2",
+    "@adonisjs/lucid": "^16.3.2",
+    "@adonisjs/mail": "^7.2.4",
     "@adonisjs/repl": "^3.1.7",
+    "@adonisjs/view": "^6.1.1",
+    "adonis5-scheduler": "^2.0.2",
+    "date-fns": "^2.28.0",
+    "luxon": "^2.3.0",
+    "mysql": "^2.18.1",
+    "phc-argon2": "^1.1.2",
     "proxy-addr": "^2.0.7",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.21"
