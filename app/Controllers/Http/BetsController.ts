@@ -4,6 +4,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Bet from 'App/Models/Bet'
 import Game from 'App/Models/Game'
 import CreateBetValidator from 'App/Validators/CreateBetValidator'
+import { formatCurrencyToBRL } from 'App/Utils/formatCurrencyToBRL'
 
 type MailBet = { type: string; numbers: string }
 export default class BetsController {
@@ -46,9 +47,11 @@ export default class BetsController {
     })
 
     if (totalPrice <= Env.get('MIN_CART_VALUE')) {
-      return response
-        .status(422)
-        .json({ error: `Total price must be greater than R$ ${Env.get('MIN_CART_VALUE')},00.` })
+      return response.status(422).json({
+        error: `Total price must be greater than ${formatCurrencyToBRL(
+          Env.get('MIN_CART_VALUE')
+        )}.`,
+      })
     }
 
     data.bets.forEach(async (bet) => {
